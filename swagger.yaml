@@ -1,0 +1,355 @@
+tags:
+  - name: products
+    description: products API
+  - name: ratings
+    description: ratings API
+paths:
+  # [GET] products
+  /products:
+    get:
+      tags:
+        - products
+      parameters:
+        - name: name
+          in: query
+          description: product name
+          required: false
+        - name: category
+          in: query
+          description: product category
+          required: false
+        - name: page
+          in: query
+          description: page number
+          required: false
+          default: 0
+      summary: Get all products
+      responses:
+        200:
+          description: '{ data: ProducGet[] }'
+        500:
+          description: 'Server Error'
+
+    # [POST] products
+    post:
+      tags:
+        - products
+      summary: Add new products
+      security: [bearerToken: []]
+      consumes:
+        - multipart/form-data
+      parameters:
+        - name: name
+          in: formData
+          type: string
+          description: product name
+          example: 'Product 1'
+          required: true
+        - name: barcode
+          type: string
+          in: formData
+          description: product barcode
+          example: '00101001119291'
+          required: true
+        - name: category
+          type: string
+          in: formData
+          description: product category
+          example: 'drink'
+          required: true
+        - name: file
+          in: formData
+          type: file
+          description: file to upload
+          required: false
+      responses:
+        201:
+          description: '{ data: ProductData }'
+        401:
+          description: 'Unauthorized'
+        403:
+          description: 'Barcode required'
+        500:
+          description: 'Server Error'
+
+  # [GET] products/barcode
+  /products/{barcode}:
+    get:
+      tags:
+        - products
+      summary: Find product by barcode
+      parameters:
+        - name: barcode
+          in: path
+          description: product barcode
+          required: true
+      responses:
+        200:
+          description: '{ data: ProductGet }'
+        404:
+          description: 'Product not found'
+        500:
+          description: 'Server Error'
+
+    # [PATCH] products/barcode
+    patch:
+      tags:
+        - products
+      summary: Update product by barcode
+      security: [bearerToken: []]
+      parameters:
+        - name: barcode
+          in: path
+          description: product barcode
+          required: true
+        - name: name
+          in: formData
+          type: string
+          description: product name
+          example: 'Product 1'
+          required: false
+        - name: category
+          type: string
+          in: formData
+          description: product category
+          example: 'drink'
+          required: false
+        - name: file
+          in: formData
+          type: file
+          description: file to upload
+          required: false
+      responses:
+        200:
+          description: '{ data: ProductData }'
+        401:
+          description: 'Unauthorized'
+        403:
+          description: 'Barcode required'
+        404:
+          description: 'Product not found'
+        500:
+          description: 'Server Error'
+
+    # [DELETE] products/barcode
+    delete:
+      tags:
+        - products
+      summary: Delete product by barcode
+      security: [bearerToken: []]
+      parameters:
+        - name: barcode
+          in: path
+          description: product barcode
+          required: true
+      responses:
+        200:
+          description: '{ data: ProductData }'
+        401:
+          description: 'Unauthorized'
+        500:
+          description: 'Server Error'
+  # [GET] ratings
+  /ratings:
+    get:
+      tags:
+        - ratings
+      summary: Get all ratings by product barcode
+      parameters:
+        - name: barcode
+          in: query
+          description: product barcode
+          required: true
+      responses:
+        200:
+          description: '{ data: RatingGet[] }'
+        403:
+          description: 'Barcode required!'
+        500:
+          description: 'Server Error'
+
+    # [POST] ratings
+    post:
+      tags:
+        - ratings
+      summary: Add new rating
+      security: [bearerToken: []]
+      parameters:
+        - name: body
+          in: body
+          description: rating data
+          required: true
+          schema:
+            $ref: '#/definitions/RatingData'
+      responses:
+        201:
+          description: '{ data: RatingData}'
+        401:
+          description: 'Unauthorized'
+        403:
+          description: 'You already rated this product'
+        404:
+          description: 'Product not found'
+        500:
+          description: 'Server Error'
+
+  # [GET] ratings/id
+  /ratings/{id}:
+    get:
+      tags:
+        - ratings
+      summary: Find rating By Id
+      parameters:
+        - name: id
+          in: path
+          description: rating Id
+          required: true
+      responses:
+        200:
+          description: '{ data: RatingGet }'
+        404:
+          description: 'Rating not found'
+        500:
+          description: 'Server Error'
+
+    # [PATCH] ratings/id
+    put:
+      tags:
+        - ratings
+      summary: Update rating By Id
+      security: [bearerToken: []]
+      parameters:
+        - name: id
+          in: path
+          description: rating Id
+          required: true
+        - name: body
+          in: body
+          description: rating Data
+          required: true
+          schema:
+            $ref: '#/definitions/RatingData'
+      responses:
+        200:
+          description: '{ data: RatingData }'
+        401:
+          description: 'Unauthorized'
+        404:
+          description: 'Rating not found'
+        500:
+          description: 'Server Error'
+
+    # [DELETE] ratings/id
+    delete:
+      tags:
+        - ratings
+      summary: Delete rating By Id
+      security: [bearerToken: []]
+      parameters:
+        - name: id
+          in: path
+          description: rating Id
+          required: true
+      responses:
+        200:
+          description: '{ data: RatingData }'
+        401:
+          description: 'Unauthorized'
+        404:
+          description: 'Rating not found'
+        500:
+          description: 'Server Error'
+
+# definitions
+definitions:
+  ProductData:
+    type: object
+    properties:
+      {
+        name: { type: string, description: product name, example: 'Product 1' },
+        barcode:
+          {
+            type: string,
+            description: product barcode,
+            example: '00101001119291',
+          },
+        createdBy: { type: number, description: user id, example: '1' },
+        category:
+          { type: string, description: product category, example: 'drink' },
+        image:
+          {
+            type: string,
+            description: product image,
+            example: 'link_to_image',
+          },
+      }
+  RatingData:
+    type: object
+    properties:
+      {
+        barcode:
+          { type: string, description: product barcode, example: 010032101 },
+        comment:
+          { type: string, description: comment, example: 'Very good product' },
+        rating: { type: number, description: product rating, example: 5 },
+      }
+  RatingGet:
+    type: object
+    properties:
+      {
+        product:
+          { type: string, description: product barcode, example: 010032101 },
+        comment:
+          { type: string, description: comment, example: 'Very good product' },
+        rating: { type: number, description: product rating, example: 5 },
+        createdAt:
+          {
+            type: string,
+            description: timestamp of creatinon,
+            example: '1669827605684',
+          },
+      }
+  ProductGet:
+    type: object
+    properties:
+      {
+        name: { type: string, description: product name, example: 'Product 1' },
+        barcode:
+          {
+            type: string,
+            description: product barcode,
+            example: '00101001119291',
+          },
+        createdBy: { type: number, description: user id, example: '1' },
+        category:
+          { type: string, description: product category, example: 'drink' },
+        image:
+          {
+            type: string,
+            description: product image,
+            example: 'link_to_image',
+          },
+        numofratings: { type: number, description: num of ratings, example: 3 },
+        avgrating: { type: number, description: average rating, example: 3.3 },
+        createdAt:
+          {
+            type: string,
+            description: timestamp of creatinon,
+            example: '1669827605684',
+          },
+      }
+
+securityDefinitions:
+  {
+    bearerToken:
+      {
+        type: 'apiKey',
+        in: 'header',
+        name: 'Authorization',
+        description: 'JWT Authorization header using the Bearer scheme. Add Bearer in front of the token and make sure you have the appropriate user role',
+      },
+  }
+
+schemes:
+  - https
+  - http
