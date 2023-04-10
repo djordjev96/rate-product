@@ -4,6 +4,8 @@ import { Strategy, ExtractJwt } from 'passport-firebase-jwt';
 import * as firebaseConfig from './firebase.config.json';
 import * as firebase from 'firebase-admin';
 import { UserService } from 'src/user/user.service';
+import { getApps } from 'firebase-admin/app';
+import { FirebaseAdmin, InjectFirebaseAdmin } from 'nestjs-firebase';
 
 const firebase_params = {
   type: firebaseConfig.type,
@@ -24,17 +26,21 @@ export class FirebaseAuthStrategy extends PassportStrategy(
   'firebase-auth',
 ) {
   private defaultApp: any;
-  constructor(private usersService: UserService) {
+  constructor(
+    @InjectFirebaseAdmin() private readonly firebase: FirebaseAdmin,
+    private usersService: UserService,
+  ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
     });
-    this.defaultApp = firebase.initializeApp({
-      credential: firebase.credential.cert(firebase_params),
-    });
+    // if (!getApps().length) {
+    //   this.defaultApp = firebase.initializeApp({
+    //     credential: firebase.credential.cert(firebase_params),
+    //   });
+    // }
   }
   async validate(token: string) {
-    const firebaseUser: any = await this.defaultApp
-      .auth()
+    const firebaseUser: any = await this.firebase.auth
       .verifyIdToken(token, true)
       .catch((err) => {
         console.log(err);
@@ -43,6 +49,7 @@ export class FirebaseAuthStrategy extends PassportStrategy(
     if (!firebaseUser) {
       throw new UnauthorizedException();
     }
+
     if (firebaseUser.email) {
       const user = await this.usersService.findUserByEmail(firebaseUser.email);
       if (!user) {

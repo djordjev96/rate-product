@@ -17,7 +17,6 @@ declare global {
 export class CurrentUserMiddleware implements NestMiddleware {
   constructor(private usersService: UserService) {}
   async use(req: Request, res: Response, next: NextFunction) {
-    console.log(req.user);
     const { email } = req.user.email || {};
 
     if (email) {

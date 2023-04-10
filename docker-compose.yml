@@ -3,7 +3,7 @@ version: '3.7'
 services:
   proxy:
     image: nginx:alpine
-    container_name: proxy
+    container_name: proxy_nest
     ports:
       - '80:80'
     volumes:
@@ -14,9 +14,9 @@ services:
   server:
     build:
       context: ./
-      target: development-build-stage
+      target: production-build-stage
       dockerfile: Dockerfile
-    container_name: server
+    container_name: server_nest
     ports:
       - '3000:3000'
     volumes:
@@ -31,7 +31,7 @@ services:
       - mysql
   mysql:
     image: mysql:5.7
-    container_name: mysql
+    container_name: mysql_nest
     environment:
       MYSQL_ROOT_USER: root
       MYSQL_ROOT_PASSWORD: password

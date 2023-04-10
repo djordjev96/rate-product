@@ -11,6 +11,8 @@ import { Rating } from './rating/rating.entity';
 import { Product } from './product/product.entity';
 import { FirebaseAuthStrategy } from './firebase/firebase-auth.strategy';
 import { UserService } from './user/user.service';
+import { FirebaseStorageProvider } from './firebase/firebase-storage.provider';
+import { FirebaseModule } from 'nestjs-firebase';
 
 @Module({
   imports: [
@@ -24,12 +26,20 @@ import { UserService } from './user/user.service';
       entities: [User, Rating, Product],
       synchronize: true,
     }),
+    FirebaseModule.forRoot({
+      googleApplicationCredential: 'src/firebase/firebase.config.json',
+    }),
     TypeOrmModule.forFeature([Product, User]),
     ProductModule,
     RatingModule,
     UserModule,
   ],
   controllers: [AppController],
-  providers: [AppService, FirebaseAuthStrategy, UserService],
+  providers: [
+    AppService,
+    FirebaseAuthStrategy,
+    UserService,
+    FirebaseStorageProvider,
+  ],
 })
 export class AppModule {}
