@@ -276,12 +276,6 @@ definitions:
         createdBy: { type: number, description: user id, example: '1' },
         category:
           { type: string, description: product category, example: 'drink' },
-        image:
-          {
-            type: string,
-            description: product image,
-            example: 'link_to_image',
-          },
       }
   RatingData:
     type: object
@@ -323,12 +317,6 @@ definitions:
         createdBy: { type: number, description: user id, example: '1' },
         category:
           { type: string, description: product category, example: 'drink' },
-        image:
-          {
-            type: string,
-            description: product image,
-            example: 'link_to_image',
-          },
         numofratings: { type: number, description: num of ratings, example: 3 },
         avgrating: { type: number, description: average rating, example: 3.3 },
         createdAt:

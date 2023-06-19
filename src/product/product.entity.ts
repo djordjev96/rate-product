@@ -17,9 +17,6 @@ export class Product {
   @Column()
   name: string;
 
-  @Column({ nullable: true })
-  image: string;
-
   @Column()
   category: string;
 
@@ -27,7 +24,7 @@ export class Product {
   createdAt: Date;
 
   @OneToMany(() => Rating, (rating) => rating.product)
-  ratings: Rating[];
+  public ratings: Rating[];
 
   @ManyToOne(() => User, (user) => user.products)
   user: User;

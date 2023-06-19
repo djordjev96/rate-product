@@ -7,10 +7,13 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ unique: true })
   email: string;
 
-  @Column()
+  @Column({ unique: true, nullable: true })
+  username: string;
+
+  @Column({ default: 'user' })
   role: string;
 
   @OneToMany(() => Product, (product) => product.user)

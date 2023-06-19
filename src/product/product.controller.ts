@@ -21,8 +21,6 @@ import { AddProductDto } from './dtos/add-product.dto';
 import { GetAllProducts } from './dtos/get-all-products.dto';
 import { UpdateProductDto } from './dtos/update-product.dto';
 import { ProductService } from './product.service';
-import { Express } from 'express';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { Serialize } from 'src/interceptors/serialize.interceptor';
 import { GetProductDto } from './dtos/get-products.dto';
 
@@ -39,14 +37,14 @@ export class ProductController {
 
   @Post()
   @UseGuards(FirebaseAuthGuard)
-  @UseInterceptors(FileInterceptor('file'))
-  addProduct(
-    @Body() body: AddProductDto,
-    @CurrentUser() user: User,
-    @UploadedFile()
-    file?: Express.Multer.File,
-  ) {
-    return this.productService.addProduct(body, user, file);
+  addProduct(@Body() body: AddProductDto, @CurrentUser() user: User) {
+    return this.productService.addProduct(body, user);
+  }
+
+  @Get('/categories')
+  @UseGuards(FirebaseAuthGuard)
+  getAllCategories() {
+    return this.productService.getAllCategories();
   }
 
   @Get('/:barcode')

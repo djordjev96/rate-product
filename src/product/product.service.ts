@@ -1,7 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import * as path from 'path';
-import { FirebaseStorageProvider } from 'src/firebase/firebase-storage.provider';
 import { Rating } from 'src/rating/rating.entity';
 import { User } from 'src/user/user.entity';
 import { Repository } from 'typeorm';
@@ -13,7 +11,7 @@ import { Product } from './product.entity';
 export class ProductService {
   constructor(
     @InjectRepository(Product) private repo: Repository<Product>,
-    private firebaseStorageProvider: FirebaseStorageProvider,
+    @InjectRepository(Rating) private ratingRepo: Repository<Rating>,
   ) {}
 
   async checkIfProductExists(barcode: string): Promise<void> {
@@ -22,19 +20,32 @@ export class ProductService {
   }
 
   async getProductByBarcode(barcode: string): Promise<any> {
-    const product = await this.repo
-      .createQueryBuilder('product')
-      .select('product.*')
-      .addSelect('AVG(rating.rating)', 'avgRating')
-      .addSelect('COUNT(product.barcode)', 'numOfRatings')
-      .leftJoin('product.ratings', 'rating')
-      .where('product.barcode = :barcode', { barcode })
-      .groupBy('product.barcode')
-      .getRawOne();
+    const product = await this.repo.findOne({
+      where: { barcode },
+      relations: ['ratings'],
+    });
 
     if (!product) throw new NotFoundException('Product not found');
 
-    return product;
+    const numOfRatings = product.ratings.length;
+    const avgRating =
+      product.ratings.reduce((partialSum, a) => partialSum + a.rating, 0) /
+      numOfRatings;
+
+    const extendedProduct = { ...product, numOfRatings, avgRating };
+
+    // const product = await this.repo
+    //   .createQueryBuilder('product')
+    //   .select('product.*')
+    //   .addSelect('product.createdAt', 'createdAt')
+    //   .addSelect('AVG(rating.rating)', 'avgRating')
+    //   .addSelect('COUNT(product.barcode)', 'numOfRatings')
+    //   .leftJoinAndSelect('product.ratings', 'rating')
+    //   .where('product.barcode = :barcode', { barcode })
+    //   .groupBy('product.barcode')
+    //   .getRawOne();
+
+    return extendedProduct;
   }
 
   async getProducts({
@@ -67,47 +78,31 @@ export class ProductService {
     return products;
   }
 
+  async getAllCategories(): Promise<string[]> {
+    const categories = await this.repo
+      .createQueryBuilder('product')
+      .select('category')
+      .groupBy('product.category')
+      .getRawMany();
+
+    return categories.map((category) => category.category);
+  }
+
   async addProduct(
     product: AddProductDto,
     user: User,
-    file?: Express.Multer.File,
   ): Promise<Product | Product[]> {
     const exists = await this.repo.findOne({
       where: { barcode: product.barcode },
     });
     if (exists) return exists;
 
-    let publicUrl = null;
-    if (file) {
-      const { destFileName, contentType, buffer } = this.fileConfig(
-        file,
-        product.category,
-      );
-
-      publicUrl = await this.firebaseStorageProvider.uploadBlob(
-        destFileName,
-        contentType,
-        buffer,
-      );
-    }
-
     const newProduct = this.repo.create({
       ...product,
-      image: publicUrl,
       user: user,
     });
 
     return await this.repo.save(newProduct);
-  }
-
-  fileConfig(file: Express.Multer.File, category: string) {
-    const ext = path.extname(file.originalname);
-    const contentType = file.mimetype;
-    const buffer = file.buffer;
-    const fileName = `${new Date().getTime()}${ext}`;
-    const destFileName = `${category}/${fileName}`;
-
-    return { destFileName, contentType, buffer };
   }
 
   async updateProduct(

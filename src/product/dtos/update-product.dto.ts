@@ -7,9 +7,5 @@ export class UpdateProductDto {
 
   @IsOptional()
   @IsString()
-  image: string;
-
-  @IsOptional()
-  @IsString()
   category: string;
 }
