@@ -1,6 +1,6 @@
 # compiled output
 /dist
-./db.sqlite
+db.sqlite
 /node_modules
 .env
 .env.*
