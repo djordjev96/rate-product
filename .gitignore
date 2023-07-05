@@ -1,7 +1,11 @@
 # compiled output
 /dist
+./db.sqlite
 /node_modules
-.env*
+.env
+.env.*
+.env.development
+src/firebase/firebase.config.json
 
 # Logs
 logs
